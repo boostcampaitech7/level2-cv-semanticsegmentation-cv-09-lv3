@@ -28,14 +28,6 @@ Bone Segmentation은 인공지능 분야에서 중요한 응용 분야 중 하�
 ## Result
 
 
-## Contributor
-
-## Product Structure
-
-## Usage
-
-## Requirements
-
 ## Contributors
 
 | 팀원 이름 | 이미지 |
@@ -46,6 +38,14 @@ Bone Segmentation은 인공지능 분야에서 중요한 응용 분야 중 하�
 | [임동훈](깃허브 주소 4) | ![임동훈](이미지 주소 4) |
 | [정아영](깃허브 주소 5) | ![정아영](이미지 주소 5) |
 | [한승수](깃허브 주소 6) | ![한승수](이미지 주소 6) |
+
+## Product Structure
+
+## Usage
+
+## Requirements
+
+
 
 
 
