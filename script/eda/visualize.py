@@ -6,7 +6,6 @@ import numpy as np
 import cv2
 import json
 import matplotlib.pyplot as plt
-import math
 
 # 클래스 이름 정의
 CLASSES = [
@@ -44,7 +43,7 @@ def load_image(image_path):
     return cv2.imread(image_path)
 
 # Mask 그리기
-def annot_to_mask(image, annotations):
+def annot_to_mask(image,annotations):
     annotation = annotations['annotations']
     img_size = image.shape[:-1]
     masks = np.zeros((len(CLASSES),img_size[0],img_size[1]))
@@ -75,135 +74,130 @@ def draw_segment_image(image,json):
 def draw_image(image):
     return Image.fromarray(image)
 
-def get_file_paths(image_root, label_root):
-    pngs = {
-        os.path.relpath(os.path.join(root, fname), start=image_root)
-        for root, _dirs, files in os.walk(image_root)
-        for fname in files
-        if os.path.splitext(fname)[1].lower() == ".png"
-    }
-
-    jsons = {
-        os.path.relpath(os.path.join(root, fname), start=label_root)
-        for root, _dirs, files in os.walk(label_root)
-        for fname in files
-        if os.path.splitext(fname)[1].lower() == ".json"
-    }
-
-    pngs = sorted(pngs)
-    jsons = sorted(jsons)
-    
-    return np.array(pngs), np.array(jsons)
-
-def display_hand_images(image_root, label_root, pngs, jsons, image_ids, page):
-    start_idx = page * 5
-    end_idx = min(start_idx + 5, len(image_ids))
-    
-    for idx in range(start_idx, end_idx):
-        image_id = image_ids[idx]
-        st.header(f"Subject {image_id}")
-        
-        col1, col2 = st.columns(2)
-        
-        # Right hand
-        with col1:
-            st.subheader("Right Hand")
-            selected_png = pngs[idx*2]
-            selected_json = jsons[idx*2]
-            
-            image_path = os.path.join(image_root, selected_png)
-            json_path = os.path.join(label_root, selected_json)
-            
-            image = load_image(image_path)
-            json_data = load_json(json_path)
-            
-            subcol1, subcol2 = st.columns(2)
-            with subcol1:
-                st.image(draw_image(image), caption="Original")
-            with subcol2:
-                segment_image = draw_segment_image(image, json_data)
-                st.image(draw_image(segment_image), caption="Segmentation")
-        
-        # Left hand
-        with col2:
-            st.subheader("Left Hand")
-            selected_png = pngs[idx*2 + 1]
-            selected_json = jsons[idx*2 + 1]
-            
-            image_path = os.path.join(image_root, selected_png)
-            json_path = os.path.join(label_root, selected_json)
-            
-            image = load_image(image_path)
-            json_data = load_json(json_path)
-            
-            subcol1, subcol2 = st.columns(2)
-            with subcol1:
-                st.image(draw_image(image), caption="Original")
-            with subcol2:
-                segment_image = draw_segment_image(image, json_data)
-                st.image(draw_image(segment_image), caption="Segmentation")
-
 def main():
     st.title("Bone Segmentation Visualization")
-    
-    # Data paths
-    TRAIN_IMAGE_ROOT = "../../data/train/DCM"
-    TRAIN_LABEL_ROOT = "../../data/train/outputs_json"
-    TEST_IMAGE_ROOT = "../../data/test/DCM"
-    
+
     # Mode selection
     mode = st.radio("Select Mode", ["Training Data", "Test Data"])
-    
+
     if mode == "Training Data":
-        if os.path.exists(TRAIN_IMAGE_ROOT):
-            pngs, jsons = get_file_paths(TRAIN_IMAGE_ROOT, TRAIN_LABEL_ROOT)
-            
-            # Get unique image IDs
-            image_ids = sorted(set([os.path.splitext(fname)[0].split('/')[0] for fname in pngs]))
-            total_pages = math.ceil(len(image_ids) / 5)
-            
-            # Page navigation
-            col1, col2, col3 = st.columns([2, 4, 2])
-            with col1:
-                if 'page' not in st.session_state:
-                    st.session_state.page = 0
-                if st.button("Previous Page") and st.session_state.page > 0:
-                    st.session_state.page -= 1
-            with col2:
-                st.write(f"Page {st.session_state.page + 1} of {total_pages}")
-            with col3:
-                if st.button("Next Page") and st.session_state.page < total_pages - 1:
-                    st.session_state.page += 1
-            
-            display_hand_images(TRAIN_IMAGE_ROOT, TRAIN_LABEL_ROOT, pngs, jsons, image_ids, st.session_state.page)
-    
-    else:  # Test Data
-        if os.path.exists(TEST_IMAGE_ROOT):
-            test_pngs = sorted({
-                os.path.relpath(os.path.join(root, fname), start=TEST_IMAGE_ROOT)
-                for root, _dirs, files in os.walk(TEST_IMAGE_ROOT)
-                for fname in files
-                if os.path.splitext(fname)[1].lower() == ".png"
-            })
-            
-            # Test image selection
-            selected_image = st.selectbox("Select Test Image", test_pngs)
-            
-            if selected_image:
-                image_path = os.path.join(TEST_IMAGE_ROOT, selected_image)
-                image = load_image(image_path)
+        IMAGE_ROOT = "../../data/train/DCM"
+        LABEL_ROOT = "../../data/train/outputs_json"
+    else:
+        IMAGE_ROOT = "../../data/test/DCM"
+        LABEL_ROOT = "../../data/test/outputs_json"
+
+    if os.path.exists(IMAGE_ROOT):
+        pngs = {
+            os.path.relpath(os.path.join(root, fname), start=IMAGE_ROOT)
+            for root, _dirs, files in os.walk(IMAGE_ROOT)
+            for fname in files
+            if os.path.splitext(fname)[1].lower() == ".png"
+        }
+
+        jsons = {
+            os.path.relpath(os.path.join(root, fname), start=LABEL_ROOT)
+            for root, _dirs, files in os.walk(LABEL_ROOT)
+            for fname in files
+            if os.path.splitext(fname)[1].lower() == ".json"
+        }
+
+        jsons_fn_prefix = sorted([os.path.splitext(fname)[0].split('/')[0] for fname in jsons])
+        pngs_fn_prefix = sorted([os.path.splitext(fname)[0].split('/')[0] for fname in pngs])
+
+        set_id = sorted(set(pngs_fn_prefix))
+
+        if mode == "Training Data":
+            assert len(jsons_fn_prefix) - len(pngs_fn_prefix) == 0
+            assert len(pngs_fn_prefix) - len(jsons_fn_prefix) == 0
+
+        pngs = sorted(pngs)
+        jsons = sorted(jsons)
+
+        pngs = np.array(pngs)
+        jsons = np.array(jsons)
+
+        # Initialize session state
+        if 'image_index' not in st.session_state:
+            st.session_state.image_id = set_id[0]
+        if 'hand_side' not in st.session_state:
+            st.session_state.hand_side = 'right'
+        if 'current_idx' not in st.session_state:
+            st.session_state.current_idx = 0
+
+        # Navigation buttons and image selection
+        col1, col2, col3, col4, col5 = st.columns([1, 1, 3, 1, 1])
+        
+        with col1:
+            if st.button("◀ Previous"):
+                # Update current_idx directly
+                if st.session_state.current_idx > 0:
+                    st.session_state.current_idx -= 1
+                    st.session_state.image_id = set_id[st.session_state.current_idx]
+        
+        with col2:
+            st.session_state.hand_side = st.radio("Hand", ('right', 'left'))
+        
+        with col3:
+            # Use current_idx for the index
+            selected_index = st.selectbox("Image ID", 
+                                        range(len(set_id)),
+                                        format_func=lambda x: set_id[x],
+                                        index=st.session_state.current_idx)
+            if selected_index != st.session_state.current_idx:
+                st.session_state.current_idx = selected_index
+                st.session_state.image_id = set_id[selected_index]
+        
+        with col5:
+            if st.button("Next ▶"):
+                # Update current_idx directly
+                if st.session_state.current_idx < len(set_id) - 1:
+                    st.session_state.current_idx += 1
+                    st.session_state.image_id = set_id[st.session_state.current_idx]
+
+        # Use current image ID for display
+        image_index = st.session_state.image_id
+
+        if st.session_state.hand_side == 'right':
+            selected_png = pngs[pngs_fn_prefix.index(image_index)]
+            selected_json = jsons[jsons_fn_prefix.index(image_index)]
+        
+        elif st.session_state.hand_side == 'left':
+            selected_png = pngs[pngs_fn_prefix.index(image_index)+1]
+            selected_json = jsons[jsons_fn_prefix.index(image_index)+1]
+
+        if mode == "Test Data" and st.session_state.hand_side == "right":
+            prediction_model = st.selectbox(
+                "Select Prediction Model",
+                ["Model A", "Model B", "Model C"]
+            )
+
+        if selected_png:
+            image_path = os.path.join(IMAGE_ROOT, selected_png)
+            image = load_image(image_path)
+
+            if mode == "Training Data" or (mode == "Test Data" and os.path.exists(os.path.join(LABEL_ROOT, selected_json))):
+                json_path = os.path.join(LABEL_ROOT, selected_json)
+                json = load_json(json_path)
+
+                st.header(f"{image_index} {st.session_state.hand_side} hand")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("Original Image")
+                    original_image = draw_image(image)
+                    st.image(original_image, caption=f"Image {st.session_state.image_id} Original")
                 
-                # Display original test image
-                st.subheader("Test Image")
-                st.image(draw_image(image), caption="Original Test Image")
-                
-                # Prediction model selection (placeholder)
-                prediction_model = st.selectbox(
-                    "Select Prediction Model",
-                    ["Model A", "Model B", "Model C"]  # Replace with actual model options
-                )
-                
-                st.info("Note: Prediction visualization will be implemented once prediction models are available.")
+                with col2:
+                    st.subheader("Segment Image")
+                    segment_image = draw_segment_image(image, json)
+                    segment_image = draw_image(segment_image)
+                    st.image(segment_image, caption=f"Image {st.session_state.image_id} Segmentation")
+            else:
+                st.header(f"{image_index} {st.session_state.hand_side} hand")
+                st.subheader("Original Image")
+                original_image = draw_image(image)
+                st.image(original_image, caption=f"Image {st.session_state.image_id} Original")
+                st.info("Prediction visualization will be implemented once prediction models are available.")
 
 if __name__ == "__main__":
     main()
