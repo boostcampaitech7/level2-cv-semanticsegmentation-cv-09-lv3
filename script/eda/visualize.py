@@ -78,8 +78,8 @@ def main():
     st.title("Bone Segmentation Visualization")
 
     # CSV 파일 목록 가져오기
-    IMAGE_ROOT = "../data/train/DCM"
-    LABEL_ROOT = "../data/train/outputs_json"
+    IMAGE_ROOT = "../../data/train/DCM"
+    LABEL_ROOT = "../../data/train/outputs_json"
 
     if os.path.exists(IMAGE_ROOT):
 
