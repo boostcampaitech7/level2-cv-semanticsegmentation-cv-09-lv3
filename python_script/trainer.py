@@ -9,6 +9,7 @@ import torch.nn.functional as F
 
 from tqdm.auto import tqdm
 from datetime import timedelta
+from skimage.color import label2rgb
 from torch.utils.data import DataLoader
 
 
@@ -103,6 +104,7 @@ class Trainer:
 
         total_loss = 0
         dices = []
+        tested_images = []
 
         with torch.no_grad():
             with tqdm(total=len(self.val_loader), desc=f'[Validation Epoch {epoch}]', disable=False) as pbar:
@@ -127,6 +129,11 @@ class Trainer:
                     dice = dice_coef(outputs, masks)
                     dices.append(dice)
 
+                    show_image = label2rgb(outputs[0].numpy())
+                    show_image_name = "Predicted Image"
+                    tested_images.append(
+                        wandb.Image(show_image, caption=f'{show_image_name}'))
+
                     pbar.update(1)
                     pbar.set_postfix(dice=torch.mean(dice).item(), loss=loss.item())
 
@@ -147,6 +154,11 @@ class Trainer:
             total_loss / len(self.val_loader),
             timedelta(seconds=val_end),
         ))
+
+        # wandb에 Dice 점수 기록
+        wandb.log({"Validation Average Dice": avg_dice})
+        for c, d in zip(self.val_loader.dataset.class2ind, dices_per_class):
+            wandb.log({f"Validation Dice {c}": d.item(), "Tested Images": tested_images})
 
         class_dice_dict = {f"{c}'s dice score" : d for c, d in zip(self.val_loader.dataset.class2ind, dices_per_class)}
         
