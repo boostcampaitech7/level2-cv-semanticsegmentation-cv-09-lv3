@@ -77,12 +77,17 @@ def draw_image(image):
 def main():
     st.title("Bone Segmentation Visualization")
 
-    # CSV 파일 목록 가져오기
-    IMAGE_ROOT = "../../data/train/DCM"
-    LABEL_ROOT = "../../data/train/outputs_json"
+    # Mode selection
+    mode = st.radio("Select Mode", ["Training Data", "Test Data"])
+
+    if mode == "Training Data":
+        IMAGE_ROOT = "../../../data/train/DCM"
+        LABEL_ROOT = "../../../data/train/outputs_json"
+    else:
+        IMAGE_ROOT = "../../data/test/DCM"
+        LABEL_ROOT = "../../data/test/outputs_json"
 
     if os.path.exists(IMAGE_ROOT):
-
         pngs = {
             os.path.relpath(os.path.join(root, fname), start=IMAGE_ROOT)
             for root, _dirs, files in os.walk(IMAGE_ROOT)
@@ -91,19 +96,20 @@ def main():
         }
 
         jsons = {
-        os.path.relpath(os.path.join(root, fname), start=LABEL_ROOT)
-        for root, _dirs, files in os.walk(LABEL_ROOT)
-        for fname in files
-        if os.path.splitext(fname)[1].lower() == ".json"
+            os.path.relpath(os.path.join(root, fname), start=LABEL_ROOT)
+            for root, _dirs, files in os.walk(LABEL_ROOT)
+            for fname in files
+            if os.path.splitext(fname)[1].lower() == ".json"
         }
 
         jsons_fn_prefix = sorted([os.path.splitext(fname)[0].split('/')[0] for fname in jsons])
         pngs_fn_prefix = sorted([os.path.splitext(fname)[0].split('/')[0] for fname in pngs])
 
-        set_id = set(pngs_fn_prefix)
+        set_id = sorted(set(pngs_fn_prefix))
 
-        assert len(jsons_fn_prefix) - len(pngs_fn_prefix) == 0
-        assert len(pngs_fn_prefix) - len(jsons_fn_prefix) == 0
+        if mode == "Training Data":
+            assert len(jsons_fn_prefix) - len(pngs_fn_prefix) == 0
+            assert len(pngs_fn_prefix) - len(jsons_fn_prefix) == 0
 
         pngs = sorted(pngs)
         jsons = sorted(jsons)
@@ -111,54 +117,87 @@ def main():
         pngs = np.array(pngs)
         jsons = np.array(jsons)
 
+        # Initialize session state
         if 'image_index' not in st.session_state:
-            st.session_state.image_id = 'ID001'
-            st.session_state.left_or_right = 'right'
+            st.session_state.image_id = set_id[0]
+        if 'hand_side' not in st.session_state:
+            st.session_state.hand_side = 'right'
+        if 'current_idx' not in st.session_state:
+            st.session_state.current_idx = 0
 
-        # 이미지 선택을 위한 UI 구성
-        col1, col2, col3, col4 = st.columns([1, 3, 1, 2])
+        # Navigation buttons and image selection
+        col1, col2, col3, col4, col5 = st.columns([1, 1, 3, 1, 1])
+        
         with col1:
-            st.session_state.right_or_left = st.radio("left or right",('right','left'))
+            if st.button("◀ Previous"):
+                # Update current_idx directly
+                if st.session_state.current_idx > 0:
+                    st.session_state.current_idx -= 1
+                    st.session_state.image_id = set_id[st.session_state.current_idx]
+        
         with col2:
-            pass
+            st.session_state.hand_side = st.radio("Hand", ('right', 'left'))
+        
         with col3:
-            pass
-        with col4:
-            st.session_state.image_id = st.selectbox("Image ID",sorted(set_id))
+            # Use current_idx for the index
+            selected_index = st.selectbox("Image ID", 
+                                        range(len(set_id)),
+                                        format_func=lambda x: set_id[x],
+                                        index=st.session_state.current_idx)
+            if selected_index != st.session_state.current_idx:
+                st.session_state.current_idx = selected_index
+                st.session_state.image_id = set_id[selected_index]
+        
+        with col5:
+            if st.button("Next ▶"):
+                # Update current_idx directly
+                if st.session_state.current_idx < len(set_id) - 1:
+                    st.session_state.current_idx += 1
+                    st.session_state.image_id = set_id[st.session_state.current_idx]
+
+        # Use current image ID for display
         image_index = st.session_state.image_id
 
-        if st.session_state.right_or_left == 'right':
+        if st.session_state.hand_side == 'right':
             selected_png = pngs[pngs_fn_prefix.index(image_index)]
             selected_json = jsons[jsons_fn_prefix.index(image_index)]
         
-        elif st.session_state.right_or_left == 'left':
+        elif st.session_state.hand_side == 'left':
             selected_png = pngs[pngs_fn_prefix.index(image_index)+1]
             selected_json = jsons[jsons_fn_prefix.index(image_index)+1]
 
-        json_path = os.path.join(LABEL_ROOT,selected_json)
-        image_path = os.path.join(LABEL_ROOT,selected_png)
+        if mode == "Test Data" and st.session_state.hand_side == "right":
+            prediction_model = st.selectbox(
+                "Select Prediction Model",
+                ["Model A", "Model B", "Model C"]
+            )
 
         if selected_png:
-            image_path = os.path.join(IMAGE_ROOT,selected_png)
+            image_path = os.path.join(IMAGE_ROOT, selected_png)
             image = load_image(image_path)
 
-        if selected_json:
-            json_path = os.path.join(LABEL_ROOT,selected_json)
-            json = load_json(json_path)
+            if mode == "Training Data" or (mode == "Test Data" and os.path.exists(os.path.join(LABEL_ROOT, selected_json))):
+                json_path = os.path.join(LABEL_ROOT, selected_json)
+                json = load_json(json_path)
 
-            st.header(f"{image_index} {st.session_state.left_or_right} hand")
-            col1, col2 = st.columns(2)
-            with col1:
+                st.header(f"{image_index} {st.session_state.hand_side} hand")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("Original Image")
+                    original_image = draw_image(image)
+                    st.image(original_image, caption=f"Image {st.session_state.image_id} Original")
+                
+                with col2:
+                    st.subheader("Segment Image")
+                    segment_image = draw_segment_image(image, json)
+                    segment_image = draw_image(segment_image)
+                    st.image(segment_image, caption=f"Image {st.session_state.image_id} Segmentation")
+            else:
+                st.header(f"{image_index} {st.session_state.hand_side} hand")
                 st.subheader("Original Image")
                 original_image = draw_image(image)
                 st.image(original_image, caption=f"Image {st.session_state.image_id} Original")
-            
-            with col2:
-                st.subheader("Segment Image")
-                segment_image = draw_segment_image(image,json)
-                segment_image = draw_image(segment_image)
-                st.image(segment_image, caption=f"Image {st.session_state.image_id} Segmentation")
-
+                st.info("Prediction visualization will be implemented once prediction models are available.")
 
 if __name__ == "__main__":
     main()

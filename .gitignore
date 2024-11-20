@@ -1,1 +1,8 @@
 data/
+code/
+python_script/wandb
+python_script/__pycache__
+python_script/loss/__pycache__
+python_script/models/__pycache__
+python_script/scheduler/__pycache__
+python_script/utils/__pycache__
