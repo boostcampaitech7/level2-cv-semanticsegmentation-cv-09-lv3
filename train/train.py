@@ -27,7 +27,7 @@ def validation(epoch, model, data_loader, criterion, device='cuda'):
             images, masks = images.to(device), masks.to(device)
             outputs = model(images)
             
-            h,w = 1363,1800
+            h,w = 1800,1363
             output_h, output_w = outputs.size(-2), outputs.size(-1)
             mask_h, mask_w = masks.size(-2), masks.size(-1)
             
@@ -45,7 +45,7 @@ def validation(epoch, model, data_loader, criterion, device='cuda'):
             dice = dice_coef(outputs, masks)
             dices.append(dice)
     
-            show_image = label2rgb(outputs[0].detach().cpu().numpy())
+            show_image = label2rgb(outputs[0][:-1].detach().cpu().numpy())
             show_image_name = names[0].split('/')[0]
             tested_images.append(
                 wandb.Image(show_image, caption=f'Predicted{show_image_name}'))
@@ -95,7 +95,7 @@ def train_model(model, train_loader, valid_loader, criterion, optimizer, schedul
             
             epoch_losses.append(loss.item())
             
-            if (step + 1) % 25 == 0:
+            if (step + 1) % 50   == 0:
                 current_loss = loss.item()
                 print(f'Epoch [{epoch}/{NUM_EPOCHS}], Step [{step+1}/{len(train_loader)}], Loss: {current_loss:.4f}')
                 wandb.log({"Training Loss": current_loss})

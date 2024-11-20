@@ -5,7 +5,7 @@ from torchvision import models
 import os
 import torch
 import segmentation_models_pytorch as smp
-from utils.constants import ENCODER_NAME, ENCODER_WEIGHT, IN_CHANNELS
+from utils.constants import ENCODER_NAME, ENCODER_WEIGHT, IN_CHANNELS, RESUME
 
 def get_model(num_classes, pretrained=True, resume=None):
     """
@@ -25,8 +25,9 @@ def get_model(num_classes, pretrained=True, resume=None):
             )
 
     if resume is not None:
-        resume_path = os.path.join('./checkpoints',resume)
+        resume_path = os.path.join(resume)
+        print(f'load from {resume_path}')
         pths = os.listdir(resume_path)
         best_epoch = max([int(p.split('.')[0][5:]) for p in pths])
-        model.load_state_dict(torch.load(os.path.join(resume_path,f'epoch{str(best_epoch)}.pt')))
+        model.load_state_dict(torch.load(os.path.join(resume_path,f'epoch{str(best_epoch)}.pt'))['model_state_dict'])
     return model

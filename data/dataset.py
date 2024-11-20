@@ -58,6 +58,8 @@ class XRayDataset(Dataset):
         else:
             self.filenames = valid_filenames
             self.labelnames = valid_labelnames
+        
+        self.images = [None]*len(self.filenames)
 
     def __len__(self):
         return len(self.filenames)
@@ -68,20 +70,21 @@ class XRayDataset(Dataset):
         
         image = cv2.imread(image_path)
         image = image / 255.
-        
+            
         label_name = self.labelnames[item]
         label_path = os.path.join(LABEL_ROOT, label_name)
         
         # (H, W, NC) 모양의 label을 생성합니다.
         label_shape = tuple(image.shape[:2]) + (len(CLASSES), )
         label = np.zeros(label_shape, dtype=np.uint8)
-        
+            
         # label 파일을 읽습니다.
         with open(label_path, "r") as f:
             annotations = json.load(f)
         x_min,y_min,x_max,y_max = annotations["boxes"]
         annotations = annotations["annotations"]
         
+        num_classes = len(CLASSES)
         # 클래스 별로 처리합니다.
         for ann in annotations:
             c = ann["label"]
@@ -92,7 +95,9 @@ class XRayDataset(Dataset):
             class_label = np.zeros(image.shape[:2], dtype=np.uint8)
             cv2.fillPoly(class_label, [points], 1)
             label[..., class_ind] = class_label
-            inputs = {"image": image, "mask": label}
+            if num_classes>29:
+                label[..., -1] += class_label
+        inputs = {"image": image, "mask": (label>0).astype(np.uint8)}
 
         if self.crop_hand:
             crop_transform = A.Crop(x_min,y_min,x_max,y_max,always_apply=True)

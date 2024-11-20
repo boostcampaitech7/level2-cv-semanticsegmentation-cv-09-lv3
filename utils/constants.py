@@ -2,6 +2,7 @@
 
 import os
 import albumentations as A
+import cv2
 
 # Base directory (assuming this script is run from the 'code' directory)
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -19,14 +20,14 @@ CLASSES = [
     'finger-11', 'finger-12', 'finger-13', 'finger-14', 'finger-15',
     'finger-16', 'finger-17', 'finger-18', 'finger-19', 'Trapezium',
     'Trapezoid', 'Capitate', 'Hamate', 'Scaphoid', 'Lunate',
-    'Triquetrum', 'Pisiform', 'Radius', 'Ulna',
+    'Triquetrum', 'Pisiform', 'Radius', 'Ulna', 'Bone'
 ]
 
 CLASS2IND = {v: i for i, v in enumerate(CLASSES)}
 IND2CLASS = {v: k for k, v in CLASS2IND.items()}
 
 #models
-ENCODER_NAME = "tu-xception41"
+ENCODER_NAME = "efficientnet-b2" #xception41 -> 71
 ENCODER_WEIGHT = "imagenet"
 IN_CHANNELS = 3
 
@@ -41,24 +42,36 @@ LOSS_WEIGHT = [0.3,0.4,0.3]
 
 #train
 TRAIN_TRANSFORM = A.Compose([
-        A.Resize(416*2, 656*2,always_apply=True),
-        A.ElasticTransform(),
-        A.HorizontalFlip(p=0.5),
-        A.Rotate(limit=30, p=0.3),
-        #A.Normalize(),
+        A.Resize(656*2, 416*2, always_apply=True),
+        A.OneOf([
+            A.ElasticTransform(p=0.5),
+            A.GridDistortion(p=0.5),
+        ], p=0.5),
+        A.OneOf([
+            A.HorizontalFlip(p=0.5),
+            A.Rotate(limit=(-30,30),p=0.3,border_mode = cv2.BORDER_CONSTANT),
+        ], p=0.5),
+        A.OneOf([
+            A.RandomBrightnessContrast(p=0.5),
+            A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.5),
+        ], p=0.5),
+        A.OneOf([
+            A.GaussianBlur(blur_limit=(3, 7), p=0.5),
+            A.MotionBlur(blur_limit=3, p=0.5),
+        ], p=0.5),
     ], additional_targets={'mask': 'mask'})
 
 VALID_TRANSFORM = A.Compose([
-        A.Resize(416*2, 656*2,always_apply=True),
-        #A.Normalize(),
+        A.Resize(656*2, 416*2, always_apply=True),
     ])
 CROP_HAND = True
 RIGHT_HAND = False
+RESUME = None
 
 # Directories
 SAVED_DIR = os.path.join(BASE_DIR, 'code', 'checkpoints')
-OUTPUT_CSV = os.path.join(BASE_DIR, 'code', 'output', 'double_scale.csv')
-CHECKPOINT = os.path.join('2024-11-18_01-55-18','epoch21.pt')
+OUTPUT_CSV = os.path.join(BASE_DIR, 'code', 'output', 'xception71_epoch50.csv')
+CHECKPOINT = os.path.join('2024-11-19_16-15-04','epoch31.pt')
 
 # Ensure directories exist
 os.makedirs(SAVED_DIR, exist_ok=True)

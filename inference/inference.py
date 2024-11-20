@@ -41,6 +41,9 @@ def test_model(model, data_loader, crop_hand = CROP_HAND, right_hand = RIGHT_HAN
                 for i,(box,output,flip) in enumerate(zip(crop_boxes,outputs, flips)):
                     if flip == torch.tensor(1,dtype = float):
                         output = flip_left_hand(output)
+                    bone_mask = output[-1]
+                    output[:-1] = output[:-1]*bone_mask
+
                     x_min, y_min, x_max, y_max = box
                     height = (y_max - y_min).item()
                     width = (x_max - x_min).item()
@@ -51,7 +54,7 @@ def test_model(model, data_loader, crop_hand = CROP_HAND, right_hand = RIGHT_HAN
                 outputs = raw_image.detach().cpu().numpy()
                 outputs = outputs.astype(bool)
                 for output, image_name in zip(outputs, image_names):
-                    for c, segm in enumerate(output):
+                    for c, segm in enumerate(output[:-1]):
                         rle = encode_mask_to_rle(segm)
                         rles.append(rle)
                         filename_and_class.append(f"{IND2CLASS[c]}_{image_name.split('/')[1]}")

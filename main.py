@@ -13,7 +13,7 @@ from inference import test_model, save_predictions_to_csv
 from utils import set_seed, CLASSES, IMAGE_ROOT_TEST, initialize_wandb, finalize_wandb, loss
 from utils.constants import (
     IMAGE_ROOT_TRAIN, LABEL_ROOT, BATCH_SIZE, LR, RANDOM_SEED, NUM_EPOCHS, VAL_EVERY,
-    WANDB_PROJECT, WANDB_ENTITY, CHECKPOINT, LABEL_ROOT_TEST, CROP_HAND, RIGHT_HAND
+    WANDB_PROJECT, WANDB_ENTITY, CHECKPOINT, LABEL_ROOT_TEST, CROP_HAND, RIGHT_HAND, RESUME
 )
 import segmentation_models_pytorch as smp
 from lion_pytorch import Lion
@@ -78,22 +78,23 @@ def main(args):
         
         train_loader = DataLoader(
             dataset=train_dataset, 
-            batch_size=BATCH_SIZE,
+            batch_size=4,
             shuffle=True,
             num_workers=8,
             drop_last=True,
+            pin_memory=True
         )
         
         valid_loader = DataLoader(
             dataset=valid_dataset, 
             batch_size=4,
             shuffle=False,
-            num_workers=0,
-            drop_last=False
+            num_workers=4,
+            drop_last=False,
         )
         
         # 모델, 손실 함수, 옵티마이저 초기화
-        model = get_model(num_classes=len(CLASSES), pretrained=True)
+        model = get_model(num_classes=len(CLASSES), pretrained=True, resume=RESUME)
         criterion = loss.Semantic_loss_functions().calc_loss
         optimizer = Lion(params=model.parameters(), lr=LR, weight_decay=1e-2)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
@@ -113,7 +114,7 @@ def main(args):
         })
         
         # 모델 로드
-        model = get_model(num_classes=len(CLASSES), pretrained=False)
+        model = get_model(num_classes=len(CLASSES), pretrained=False, resume=None)
         model_path = os.path.join("code/checkpoints", CHECKPOINT)
         model.load_state_dict(torch.load(model_path)['model_state_dict'])
         
