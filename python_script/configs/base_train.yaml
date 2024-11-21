@@ -3,17 +3,17 @@ image_root: /data/ephemeral/home/dong_yeong/data/train/DCM
 label_root: /data/ephemeral/home/dong_yeong/data/train/outputs_json
 
 # 모델명 및 사전 학습 여부
-model_name: UnetPlusPlus
+model_name: Unet
 model_parameter:
-  encoder_name: resnext101_32x8d
+  encoder_name: effiecientnet
   classes: 29
 
 # batch_size
-train_batch_size: 1
-val_batch_size: 1
+train_batch_size: 4
+val_batch_size: 4
 
 # image resize
-image_size: &image_size 1536
+image_size: &image_size 512
 
 # transform 관련
 transform:
@@ -28,13 +28,13 @@ weight_decay: 1e-6
 max_epoch: &max_epoch 80
 
 # loss 관련 설정
-loss_name: Focal_Dice_Loss
+loss_name: BCEWithLogitsLoss
 
 # loss에 필요한 parameter -> dict 형태로 작성
 loss_parameter: {}
 
 # scheduler 관련 설정
-scheduler_name: reducelronplateau
+scheduler_name: CosineAnnealingLR
 
 # scheduler 필요한 parameter -> dict 형태로 작성 reduce on placetu
 scheduler_parameter:
@@ -56,10 +56,10 @@ val_interval: 2
 threshold: 0.5
 
 # checkpoint 저장 경로
-save_dir: ./checkpoints/UnetPlusPlus
+save_dir: ./checkpoints/Unet
 
 # wandb
 api_key: 67cf78f1678bcd1539448f4567d3b540efce7e03
-team_name: kimdyoc13
+team_name: ayeong-chonnam-national-university
 project_name: Sementic Segmentation
-experiment_detail: Unet++
+experiment_detail: Unet

@@ -6,3 +6,6 @@ python_script/loss/__pycache__
 python_script/models/__pycache__
 python_script/scheduler/__pycache__
 python_script/utils/__pycache__
+python_script/checkpoints
+python_script/log
+python_script/configs
