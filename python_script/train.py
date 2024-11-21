@@ -134,7 +134,7 @@ def main(cfg):
     model.to(device)
 
     # optimizer는 고정
-    optimizer = Lion(params=model.parameters(),
+    optimizer = optim.Adam(params=model.parameters(),
                            lr=cfg.lr,
                            weight_decay=cfg.weight_decay)
     
