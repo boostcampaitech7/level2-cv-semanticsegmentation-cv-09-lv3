@@ -10,6 +10,8 @@ import torch.nn.functional as F
 from tqdm.auto import tqdm
 from datetime import timedelta
 from torch.utils.data import DataLoader
+# AMP 관련 import 추가
+from torch.cuda.amp import GradScaler, autocast
 
 
 def dice_coef(y_true, y_pred):
@@ -32,7 +34,8 @@ class Trainer:
                  criterion: torch.nn.modules.loss._Loss,
                  max_epoch: int,
                  save_dir: str,
-                 val_interval: int):
+                 val_interval: int,
+                 scaler : GradScaler = None):
         self.model = model
         self.device = device
         self.train_loader = train_loader
@@ -44,6 +47,7 @@ class Trainer:
         self.save_dir = save_dir
         self.threshold = threshold
         self.val_interval = val_interval
+        self.scaler = scaler if scaler is not None else GradScaler()
 
 
     def save_model(self, epoch, dice_score, before_paths):
@@ -76,9 +80,10 @@ class Trainer:
         with tqdm(total=len(self.train_loader), desc=f"[Training Epoch {epoch}]", disable=False) as pbar:
             for images, masks in self.train_loader:
                 images, masks = images.to(self.device), masks.to(self.device)
-                outputs = self.model(images)
-
-                loss = self.criterion(outputs, masks)
+                with autocast(enabled = True):
+                    outputs = self.model(images)
+                    loss = self.criterion(outputs, masks)
+                
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()

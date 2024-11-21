@@ -12,6 +12,8 @@ import albumentations as A
 
 import argparse
 import torch.optim as optim
+# AMP를 위해 torch.cuda.amp 추가
+from torch.cuda.amp import GradScaler, autocast
 
 from tqdm.auto import tqdm
 from trainer import Trainer
@@ -19,6 +21,8 @@ from dataset import XRayDataset
 from omegaconf import OmegaConf
 from utils.wandb import set_wandb
 from torch.utils.data import DataLoader
+# AMP를 위해 torch.cuda.amp 추가
+from torch.cuda.amp import GradScaler, autocast
 from loss.loss_selector import LossSelector
 from scheduler.scheduler_selector import SchedulerSelector
 from models.model_selector import ModelSelector
@@ -55,30 +59,30 @@ def setup(cfg):
     return np.array(sorted(fnames)), np.array(sorted(labels))
 
 
-def get_train_transform():
-    return A.Compose([
-        A.Resize(1536, 1536),
-        A.OneOf([
-            A.RandomBrightnessContrast(p=0.5),
-            A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.5),
-        ], p=0.5),
-        # GaussNoise를 제거하고 다른 변환으로 대체
-        A.OneOf([
-            A.GaussianBlur(blur_limit=(3, 7), p=0.5),
-            A.MotionBlur(blur_limit=3, p=0.5),
-        ], p=0.5),
-        A.OneOf([
-            A.RandomRotate90(p=0.5),
-            A.HorizontalFlip(p=0.5),
-        ], p=0.5),
-        A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.1, rotate_limit=45, p=0.5),
-        A.OneOf([
-            A.ElasticTransform(alpha=120, sigma=120 * 0.05, p=0.5),
-            A.GridDistortion(p=0.5),
-            A.OpticalDistortion(distort_limit=1, shift_limit=0.5, p=0.5),
-        ], p=0.3),
-        A.CoarseDropout(max_holes=8, max_height=32, max_width=32, p=0.3)
-    ])
+# def get_train_transform():
+#     return A.Compose([
+#         A.Resize(1536, 1536),
+#         A.OneOf([
+#             A.RandomBrightnessContrast(p=0.5),
+#             A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.5),
+#         ], p=0.5),
+#         # GaussNoise를 제거하고 다른 변환으로 대체
+#         A.OneOf([
+#             A.GaussianBlur(blur_limit=(3, 7), p=0.5),
+#             A.MotionBlur(blur_limit=3, p=0.5),
+#         ], p=0.5),
+#         A.OneOf([
+#             A.RandomRotate90(p=0.5),
+#             A.HorizontalFlip(p=0.5),
+#         ], p=0.5),
+#         A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.1, rotate_limit=45, p=0.5),
+#         A.OneOf([
+#             A.ElasticTransform(alpha=120, sigma=120 * 0.05, p=0.5),
+#             A.GridDistortion(p=0.5),
+#             A.OpticalDistortion(distort_limit=1, shift_limit=0.5, p=0.5),
+#         ], p=0.3),
+#         A.CoarseDropout(max_holes=8, max_height=32, max_width=32, p=0.3)
+#     ])
 
 
 def main(cfg):
@@ -97,7 +101,7 @@ def main(cfg):
                                 cfg.image_root,
                                 cfg.label_root,
                                 fold=cfg.val_fold,
-                                transforms=get_train_transform(),
+                                transforms=transform(),
                                 is_train=True)
     
     valid_dataset = XRayDataset(fnames,
@@ -133,6 +137,8 @@ def main(cfg):
 
     model.to(device)
 
+    scaler = GradScaler()
+
     # optimizer는 고정
     optimizer = optim.Adam(params=model.parameters(),
                            lr=cfg.lr,
@@ -149,7 +155,7 @@ def main(cfg):
     loss_selector = LossSelector()
     criterion = loss_selector.get_loss(cfg.loss_name, **cfg.loss_parameter)
     
-
+    scaler = GradScaler() if getattr(cfg, 'use_amp', False) else None
 
 
     trainer = Trainer(
@@ -163,7 +169,8 @@ def main(cfg):
         criterion=criterion,
         max_epoch=cfg.max_epoch,
         save_dir=cfg.save_dir,
-        val_interval=cfg.val_interval
+        val_interval=cfg.val_interval,
+        scaler = scaler
     )
 
     trainer.train()

@@ -58,6 +58,9 @@ threshold: 0.5
 # checkpoint 저장 경로
 save_dir: ./checkpoints/Unet
 
+# AMP 설정 추가
+use_amp: True
+
 # wandb
 api_key: 67cf78f1678bcd1539448f4567d3b540efce7e03
 team_name: ayeong-chonnam-national-university
