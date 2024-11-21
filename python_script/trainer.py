@@ -118,12 +118,12 @@ class Trainer:
                     total_loss += loss.item()
 
                     outputs = torch.sigmoid(outputs)
-                    outputs = (outputs > self.threshold).detach().cpu()
-                    masks = masks.detach().cpu()
-
+                    ## Dice 계산과정을 gpu에서 진행하도록 변경
+                    # outputs = (outputs > self.threshold).detach().cpu()
+                    # masks = masks.detach().cpu()
+                    outputs = (outputs > self.threshold)
                     dice = dice_coef(outputs, masks)
-                    dices.append(dice)
-
+                    dices.append(dice.detach().cpu())
                     pbar.update(1)
                     pbar.set_postfix(dice=torch.mean(dice).item(), loss=loss.item())
 
