@@ -101,7 +101,7 @@ def main(cfg):
                                 cfg.image_root,
                                 cfg.label_root,
                                 fold=cfg.val_fold,
-                                transforms=transform(),
+                                transforms=transform,
                                 is_train=True)
     
     valid_dataset = XRayDataset(fnames,
