@@ -50,26 +50,18 @@ class Trainer:
         self.scaler = scaler if scaler is not None else GradScaler()
 
 
-    def save_model(self, epoch, dice_score, before_paths):
+
+    def save_model(self, epoch, dice_score, before_path):
         # checkpoint 저장 폴더 생성
         if not osp.isdir(self.save_dir):
             os.makedirs(self.save_dir, exist_ok=True)
 
-        # 이전 체크포인트 삭제
-        for path in before_paths:
-            if path != "" and osp.exists(path):
-                os.remove(path)
+        if before_path != "" and osp.exists(before_path):
+            os.remove(before_path)
 
-        # 새로운 체크포인트 저장
         output_path = osp.join(self.save_dir, f"best_{epoch}epoch_{dice_score:.4f}.pt")
         torch.save(self.model, output_path)
-
-        # 가장 좋은 모델 체크포인트를 저장하기 위한 리스트 업데이트
-        before_paths.append(output_path)
-        if len(before_paths) > 3:
-            os.remove(before_paths.pop(0))  # 가장 오래된 체크포인트 삭제
-
-        return before_paths
+        return output_path
 
 
     def train_epoch(self, epoch):
@@ -153,7 +145,7 @@ class Trainer:
             timedelta(seconds=val_end),
         ))
 
-        class_dice_dict = {f"{c}'s dice score" : d for c, d in zip(self.val_loader.dataset.class2ind, dices_per_class)}
+        class_dice_dict = {f"{c} dice score": d.item() for c, d in zip(self.val_loader.dataset.class2ind.keys(), dices_per_class)}
         
         return avg_dice, class_dice_dict, total_loss / len(self.val_loader)
     

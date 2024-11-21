@@ -5,7 +5,7 @@ label_root: /data/ephemeral/home/dong_yeong/data/train/outputs_json
 # 모델명 및 사전 학습 여부
 model_name: Unet
 model_parameter:
-  encoder_name: effiecientnet
+  encoder_name: efficientnet-b0
   classes: 29
 
 # batch_size
@@ -25,7 +25,7 @@ transform:
 lr: 1e-3
 weight_decay: 1e-6
 
-max_epoch: &max_epoch 80
+max_epoch: &max_epoch 50
 
 # loss 관련 설정
 loss_name: BCEWithLogitsLoss
@@ -36,16 +36,16 @@ loss_parameter: {}
 # scheduler 관련 설정
 scheduler_name: CosineAnnealingLR
 
-# scheduler 필요한 parameter -> dict 형태로 작성 reduce on placetu
-scheduler_parameter:
-  mode : min
-  patience : 5
-
-
-# # scheduler 필요한 parameter -> dict 형태로 작성
+# # scheduler 필요한 parameter -> dict 형태로 작성 reduce on placetu
 # scheduler_parameter:
-#   T_max: *max_epoch
-#   eta_min: 1e-6
+#   mode : min
+#   patience : 5
+
+
+# scheduler 필요한 parameter -> dict 형태로 작성
+scheduler_parameter:
+  T_max: *max_epoch
+  eta_min: 1e-6
 
 # random seed값
 seed: 21
@@ -65,4 +65,4 @@ use_amp: True
 api_key: 67cf78f1678bcd1539448f4567d3b540efce7e03
 team_name: ayeong-chonnam-national-university
 project_name: Sementic Segmentation
-experiment_detail: Unet
+experiment_detail: Baseline_Check
