@@ -1,5 +1,6 @@
 from .base_model import UnetModel
 from .UnetPlusPlus import UnetPlusPlusModel
+from .DeepLabV3plus import DeepLabV3Plus
 from torch import inf
 
 class ModelSelector():
@@ -13,7 +14,8 @@ class ModelSelector():
     def __init__(self) -> None:
         self.model_classes = {
             "Unet" : UnetModel,
-            "UnetPlusPlus" : UnetPlusPlusModel
+            "UnetPlusPlus" : UnetPlusPlusModel,
+            "DeepLabV3Plus" : DeepLabV3Plus
         }
 
     def get_model(self, model_name, **model_parameter):
