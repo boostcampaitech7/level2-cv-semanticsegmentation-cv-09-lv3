@@ -72,11 +72,11 @@ class Trainer:
         with tqdm(total=len(self.train_loader), desc=f"[Training Epoch {epoch}]", disable=False) as pbar:
             for images, masks in self.train_loader:
                 images, masks = images.to(self.device), masks.to(self.device)
-                with autocast(enabled = True):
-                    outputs = self.model(images)
-                    loss = self.criterion(outputs, masks)
-                
                 self.optimizer.zero_grad()
+                outputs = self.model(images)
+                loss = self.criterion(outputs, masks)
+                
+                
                 loss.backward()
                 self.optimizer.step()
 
@@ -160,11 +160,11 @@ class Trainer:
         for epoch in range(1, self.max_epoch + 1):
 
             train_loss = self.train_epoch(epoch)
-
+            
             wandb.log({
                 "Epoch" : epoch,
                 "Train Loss" : train_loss,
-                "Learning Rate": self.scheduler.get_last_lr()[0]
+                "Learning Rate":  self.scheduler.get_last_lr()[0] #   self.optimizer.param_groups[0]['lr']
             }, step=epoch)
 
             # validation 주기에 따라 loss를 출력하고 best model을 저장합니다.
@@ -175,10 +175,12 @@ class Trainer:
                     "Avg Dice Score" : avg_dice,
                     **dices_per_class
                 }, step=epoch)
+
+                # self.scheduler.step(val_loss) # reduceplatu 아니면 지우기
                 
                 if best_dice < avg_dice:
                     print(f"Best performance at epoch: {epoch}, {best_dice:.4f} -> {avg_dice:.4f}\n")
                     best_dice = avg_dice
                     before_path = self.save_model(epoch, best_dice, before_path)
 
-            self.scheduler.step()
+            self.scheduler.step() # 추가 확인 필요 # redece 면 지우기

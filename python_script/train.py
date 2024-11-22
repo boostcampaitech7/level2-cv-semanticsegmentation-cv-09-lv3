@@ -57,8 +57,6 @@ def setup(cfg):
     }
 
     return np.array(sorted(fnames)), np.array(sorted(labels))
-
-
 # def get_train_transform():
 #     return A.Compose([
 #         A.Resize(1536, 1536),
@@ -140,7 +138,7 @@ def main(cfg):
     scaler = GradScaler()
 
     # optimizer는 고정
-    optimizer = optim.Adam(params=model.parameters(),
+    optimizer = Lion(params=model.parameters(),
                            lr=cfg.lr,
                            weight_decay=cfg.weight_decay)
     
