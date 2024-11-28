@@ -71,7 +71,7 @@ def inference(args, data_loader):
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("model", type=str, help="Path to the model to use")
-    parser.add_argument("--image_root", type=str, default="/data/ephemeral/home/data/test/DCM")
+    parser.add_argument("--image_root", type=str, default="/data/ephemeral/home/dong_yeong/data/test/DCM/")
     parser.add_argument("--thr", type=float, default=0.5)
     parser.add_argument("--output", type=str, default="./output.csv")
     parser.add_argument("--resize", type=int, default=512, help="Size to resize images (both width and height)")
