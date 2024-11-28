@@ -15,35 +15,24 @@ Bone Segmentation은 인공지능 분야에서 중요한 응용 분야 중 하�
 
 ![image](https://github.com/user-attachments/assets/1f72f09c-21ca-4aec-96fc-db8a5d0a89ce)
 
-저희들이 개발한 우수한 성능의 모델은 질병 진단, 수술 계획, 의료 장비 제작, 의료 교육 등 다양한 분야에서 활용될 것으로 기대됩니다. 🌎
-
 ### Input
-- Hand bone X-ray 객체가 담긴 이미지가 모델의 입력으로 사용됩니다.
-- Segmentation annotation은 JSON 파일로 제공됩니다.
+- Hand bone X-ray 객체가 담긴 이미지
+- Segmentation annotation이 담긴 JSON 파일
+- Train 800장, Test 284장
 
 ### Output
-- 모델은 각 클래스(29개)에 대한 확률 맵을 생성하고, 이를 기반으로 각 픽셀을 해당 클래스에 할당합니다.
-- 최종적으로 예측된 결과는 Run-Length Encoding(RLE) 형식으로 변환되어 CSV 파일로 제출됩니다.
-
-## Result
-
-
-## Contributors
-
-| 팀원 이름 | 이미지 |
-|-----------|--------|
-| [김동영](https://github.com/kimdyoc13) | ![김동영](https://private-avatars.githubusercontent.com/u/116950743?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MzE1MDA3NjAsIm5iZiI6MTczMTQ5OTU2MCwicGF0aCI6Ii91LzExNjk1MDc0MyJ9.kQDdSTPb8RiHaE_7ow9AVnKX0Ta3UEbwwMsp_SM9HvE&v=4) |
-| [김예나](깃허브 주소 2) | ![김예나](이미지 주소 2) |
-| [은예찬](깃허브 주소 3) | ![은예찬](이미지 주소 3) |
-| [임동훈](깃허브 주소 4) | ![임동훈](이미지 주소 4) |
-| [정아영](깃허브 주소 5) | ![정아영](이미지 주소 5) |
-| [한승수](깃허브 주소 6) | ![한승수](이미지 주소 6) |
+- 모델은 각 클래스(29개)에 대한 확률 맵을 생성하고, 이를 기반으로 각 픽셀을 해당 클래스에 할당
+- 최종적으로 예측된 결과는 Run-Length Encoding(RLE) 형식으로 변환되어 CSV 파일로 제출
 
 ## Product Structure
 
 ## Usage
 
-## Requirements
+## 최종 선택 모델
+
+## Result
+
+## Contributors
 
 
 
