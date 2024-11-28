@@ -1,11 +1,11 @@
 # data 관련 설정
-image_root: /data/ephemeral/home/dong_yeong/data/train/DCM
-label_root: /data/ephemeral/home/dong_yeong/data/train/outputs_json
+image_root: /data/ephemeral/home/dong_yeong/data/cleansing_train/DCM
+label_root: /data/ephemeral/home/dong_yeong/data/cleansing_train/outputs_json
 
 # 모델명 및 사전 학습 여부
-model_name: Unet
+model_name: DeepLabV3Plus
 model_parameter:
-  encoder_name: tu-hrnet_w64
+  encoder_name: xception
   classes: 29
 
 # batch_size
@@ -25,7 +25,7 @@ transform:
 lr: 1e-3
 weight_decay: 1e-6
 
-max_epoch: &max_epoch 50
+max_epoch: &max_epoch 30
 
 # loss 관련 설정
 loss_name: BCEWithLogitsLoss
@@ -36,7 +36,7 @@ loss_parameter: {}
 # scheduler 관련 설정
 scheduler_name: CosineAnnealingLR
 
-# # scheduler 필요한 parameter -> dict 형태로 작성 reduce on placetu
+# # reduce on placetu scheduler 필요한 parameter -> dict 형태로 작성 
 # scheduler_parameter:
 #   mode : min
 #   patience : 5
@@ -52,24 +52,14 @@ seed: 21
 
 # validation 관련 인자
 val_fold: 0
-val_interval: 2
+val_interval: 1
 threshold: 0.5
 
 # checkpoint 저장 경로
-save_dir: ./checkpoints/Unet
-
-# AMP 설정 추가
-use_amp: True
+save_dir: ./checkpoints/DeepLabV3Plus
 
 # wandb
 api_key: 67cf78f1678bcd1539448f4567d3b540efce7e03
 team_name: ayeong-chonnam-national-university
 project_name: Sementic Segmentation
-experiment_detail: Baseline_Check
-
-# 옵티마이저 설정 추가
-optimizer:
-  name: "lion"
-  params:
-    weight_decay: 0.0001
-    betas: [0.9, 0.99]
+experiment_detail: data_cleansing_test
