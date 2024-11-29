@@ -2,3 +2,4 @@ wandb/
 checkpoints/
 code/
 fold4/
+*.csv
