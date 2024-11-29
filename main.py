@@ -13,7 +13,7 @@ from inference import test_model, save_predictions_to_csv
 from utils import set_seed, CLASSES, IMAGE_ROOT_TEST, initialize_wandb, finalize_wandb, loss
 from utils.constants import (
     IMAGE_ROOT_TRAIN, LABEL_ROOT, BATCH_SIZE, LR, RANDOM_SEED, NUM_EPOCHS, VAL_EVERY,
-    WANDB_PROJECT, WANDB_ENTITY, CHECKPOINT, LABEL_ROOT_TEST, CROP_HAND, RIGHT_HAND, RESUME
+    WANDB_PROJECT, WANDB_ENTITY, CHECKPOINT, LABEL_ROOT_TEST, CROP_HAND, RIGHT_HAND, RESUME, WEIGHTED_LOSS
 )
 import segmentation_models_pytorch as smp
 from lion_pytorch import Lion
@@ -54,6 +54,7 @@ def main(args):
     학습 또는 추론 모드를 실행하는 메인 함수.
     """
     set_seed(RANDOM_SEED)
+    print(args.fold)
     
     if args.mode == 'train':
         # wandb 초기화
@@ -73,8 +74,8 @@ def main(args):
         train_transforms = get_train_transforms()
         valid_transforms = get_valid_transforms()
         
-        train_dataset = XRayDataset(pngs, jsons, is_train=True, transforms=train_transforms,crop_hand=CROP_HAND)
-        valid_dataset = XRayDataset(pngs, jsons, is_train=False, transforms=valid_transforms,crop_hand=CROP_HAND)
+        train_dataset = XRayDataset(pngs, jsons, is_train=True, transforms=train_transforms,crop_hand=CROP_HAND,split_num=args.fold)
+        valid_dataset = XRayDataset(pngs, jsons, is_train=False, transforms=valid_transforms,crop_hand=CROP_HAND,split_num=args.fold)
         
         train_loader = DataLoader(
             dataset=train_dataset, 
@@ -100,7 +101,7 @@ def main(args):
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
         
         # 학습
-        train_model(model, train_loader, valid_loader, criterion, optimizer, scheduler)
+        train_model(model, train_loader, valid_loader, criterion, optimizer, scheduler, split_num=args.fold)
         
         # wandb 종료
         finalize_wandb()
@@ -137,9 +138,9 @@ def main(args):
         test_dataset = XRayInferenceDataset(pngs_test, jsons_test, image_root=IMAGE_ROOT_TEST, label_root = LABEL_ROOT_TEST, transforms=test_transforms, crop_hand=CROP_HAND, right_hand = RIGHT_HAND)
         test_loader = DataLoader(
             dataset=test_dataset,
-            batch_size=2,
+            batch_size=4,
             shuffle=False,
-            num_workers=2,
+            num_workers=0,
             drop_last=False
         )
         
@@ -159,5 +160,6 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='X-Ray Segmentation Pipeline with wandb')
     parser.add_argument('--mode', type=str, required=True, help="실행 모드: 'train' 또는 'inference'")
+    parser.add_argument('--fold', type=int, required=False, default = 0, help="학습시킬 fold number")
     args = parser.parse_args()
     main(args)

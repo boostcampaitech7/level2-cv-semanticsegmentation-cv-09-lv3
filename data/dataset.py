@@ -15,7 +15,7 @@ from utils.constants import (
 from utils.utils import decode_rle_to_mask
 
 class XRayDataset(Dataset):
-    def __init__(self, pngs, jsons, is_train=True, transforms=None, crop_hand = False, right_hand=False, n_splits=5):
+    def __init__(self, pngs, jsons, is_train=True, transforms=None, crop_hand = False, right_hand=False, n_splits=5, split_num=0):
         """
         Dataset for training and validation.
         
@@ -30,7 +30,7 @@ class XRayDataset(Dataset):
         self.is_train = is_train
         self.crop_hand = crop_hand
         self.right_hand = right_hand
-        
+
         _filenames = np.array(sorted(pngs))
         _labelnames = np.array(sorted(jsons))
         
@@ -45,12 +45,18 @@ class XRayDataset(Dataset):
         valid_labelnames = []
         
         for fold, (train_idx, valid_idx) in enumerate(gkf.split(_filenames, ys, groups)):
-            if fold == 0 and not is_train:
-                valid_filenames = _filenames[valid_idx].tolist()
+            if is_train:
+                # 0번을 validation dataset으로 사용합니다.
+                if fold == split_num:
+                    continue
+
+                train_filenames += _filenames[valid_idx].tolist()
+                train_labelnames += _labelnames[valid_idx].tolist()
+
+            if fold == split_num and is_train != True:
+                valid_filenames = _filenames[valid_idx].tolist() 
                 valid_labelnames = _labelnames[valid_idx].tolist()
-            elif fold != 0 and is_train:
-                train_filenames += _filenames[train_idx].tolist()
-                train_labelnames += _labelnames[train_idx].tolist()
+                break
         
         if is_train:
             self.filenames = train_filenames
@@ -100,7 +106,7 @@ class XRayDataset(Dataset):
         inputs = {"image": image, "mask": (label>0).astype(np.uint8)}
 
         if self.crop_hand:
-            crop_transform = A.Crop(x_min,y_min,x_max,y_max,always_apply=True)
+            crop_transform = A.Crop(x_min,y_min,x_max,2048,always_apply=True)
             inputs = crop_transform(**inputs)
         
         if self.transforms is not None:
@@ -164,7 +170,8 @@ class XRayInferenceDataset(Dataset):
                 annotations = json.load(f)
             crop_box = annotations["boxes"]
             x_min,y_min,x_max,y_max = crop_box
-            image = image[y_min:y_max,x_min:x_max]
+            image = image[y_min:2048,x_min:x_max]
+            inputs = {"image": image}
             crop_box = torch.tensor(crop_box)
         
         if self.transforms is not None:

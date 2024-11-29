@@ -4,22 +4,28 @@ import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 import pandas as pd
+import numpy as np
 import os
 import wandb  # wandb 임포트 추가
 import albumentations as A
 import torchvision
+import ttach as tta
 
 from utils.utils import encode_mask_to_rle, decode_rle_to_mask
-from utils.constants import IND2CLASS, CLASSES, IMAGE_ROOT_TEST, OUTPUT_CSV, CROP_HAND, RIGHT_HAND
+from utils.constants import IND2CLASS, CLASSES, IMAGE_ROOT_TEST, OUTPUT_CSV, CROP_HAND, RIGHT_HAND, TTA_TRANSFORM
 
 def flip_left_hand(outputs):
     flip = torchvision.transforms.RandomHorizontalFlip(p=1)
     return flip(outputs)
 
-def test_model(model, data_loader, crop_hand = CROP_HAND, right_hand = RIGHT_HAND, device='cuda', threshold=0.5):
+def test_model(model, data_loader, crop_hand = CROP_HAND, right_hand = RIGHT_HAND, device='cuda', threshold=0.5, tta_transform = TTA_TRANSFORM):
     """
     테스트 데이터에 대해 추론 수행.
     """
+
+    if tta_transform is not None:
+        model = tta.SegmentationTTAWrapper(model, tta_transform)
+
     model.to(device)
     model.eval()
     
@@ -32,18 +38,19 @@ def test_model(model, data_loader, crop_hand = CROP_HAND, right_hand = RIGHT_HAN
                 images = images.cuda()    
                 outputs = model(images)
                 
-                outputs = F.interpolate(outputs, size=(1363,1800), mode="bilinear")
                 background = F.interpolate(outputs, size=(2048,2048), mode="bilinear")
                 outputs = torch.sigmoid(outputs)
                 outputs = (outputs > threshold).float()
                 
                 raw_image = torch.zeros_like(background)
-                for i,(box,output,flip) in enumerate(zip(crop_boxes,outputs, flips)):
+                for i,(image,box,output,flip) in enumerate(zip(images,crop_boxes,outputs, flips)):
                     if flip == torch.tensor(1,dtype = float):
                         output = flip_left_hand(output)
-                    bone_mask = output[-1]
-                    output[:-1] = output[:-1]*bone_mask
+                    if output.shape[0]==30:
+                        bone_mask = output[-1]
+                        output[:-1] = output[:-1]*bone_mask
 
+                    box[-1] = 2048
                     x_min, y_min, x_max, y_max = box
                     height = (y_max - y_min).item()
                     width = (x_max - x_min).item()

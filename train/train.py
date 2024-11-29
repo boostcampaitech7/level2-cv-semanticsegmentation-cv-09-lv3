@@ -8,7 +8,7 @@ import wandb  # wandb 임포트 추가
 from datetime import datetime
 
 from utils.utils import dice_coef, save_model, initialize_wandb
-from utils.constants import NUM_EPOCHS, VAL_EVERY, THRESHOLD, CLASSES, WANDB_PROJECT, WANDB_ENTITY
+from utils.constants import NUM_EPOCHS, VAL_EVERY, THRESHOLD, CLASSES, WANDB_PROJECT, WANDB_ENTITY, USE_AMP
 from utils.visualization import visualize_sample, label2rgb
 from PIL import Image
 
@@ -63,18 +63,17 @@ def validation(epoch, model, data_loader, criterion, device='cuda'):
     
     return avg_dice
 
-def train_model(model, train_loader, valid_loader, criterion, optimizer, scheduler, device='cuda', debug = False):
+def train_model(model, train_loader, valid_loader, criterion, optimizer, scheduler, device='cuda', use_amp = USE_AMP, weighted_loss = False, split_num=0):
     """
     세그멘테이션 모델 학습.
     """
-    print('Start training...')
+    print(f'Start training... fold {split_num}')
     best_dice = 0.0
-    use_amp = True
 
     now = datetime.now()
     timestamp = str(now.strftime("%Y-%m-%d_%H-%M-%S"))
     model.to(device)
-    wandb.watch(model)
+    wandb.watch(model, criterion, log='all')
     scaler = torch.cuda.amp.GradScaler(enabled = use_amp)
 
     for epoch in range(1, NUM_EPOCHS + 1):
@@ -87,18 +86,29 @@ def train_model(model, train_loader, valid_loader, criterion, optimizer, schedul
             
             with torch.cuda.amp.autocast(enabled=use_amp):
                 outputs = model(images)
-                loss = criterion(outputs, masks)
+                assert not torch.isnan(outputs).any(), "NaN in model outputs"
+                if weighted_loss:
+                    loss1 = criterion(outputs[:,19:-3,:,:].contiguous(), masks[:,19:-3,:,:].contiguous())
+                    loss2 = criterion(outputs, masks)
+                    loss = loss1 + loss2
+                else:
+                    loss = criterion(outputs, masks)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
             scheduler.step()
+
+            for name, param in model.named_parameters():
+                if param.grad is not None and torch.isnan(param.grad).any():
+                    print(f"NaN in gradients at {name}")
             
             epoch_losses.append(loss.item())
+            current_lr = optimizer.param_groups[0]['lr']
             
             if (step + 1) % 50   == 0:
                 current_loss = loss.item()
                 print(f'Epoch [{epoch}/{NUM_EPOCHS}], Step [{step+1}/{len(train_loader)}], Loss: {current_loss:.4f}')
-                wandb.log({"Training Loss": current_loss})
+                wandb.log({"Training Loss": current_loss, "learning_rate": current_lr})
         
         avg_loss = sum(epoch_losses) / len(epoch_losses)
         print(f'Epoch [{epoch}/{NUM_EPOCHS}] Average Loss: {avg_loss:.4f}')
@@ -106,10 +116,10 @@ def train_model(model, train_loader, valid_loader, criterion, optimizer, schedul
         
         if epoch % VAL_EVERY == 0:
             avg_dice = validation(epoch, model, valid_loader, criterion, device)
-            
+                       
             if avg_dice > best_dice:
                 print(f'Best Dice updated: {best_dice:.4f} -> {avg_dice:.4f}')
                 best_dice = avg_dice
-                save_model(model,timestamp,epoch,optimizer,loss,file_name = f'epoch{str(epoch+1)}.pt')
+                save_model(model,timestamp+'_fold_'+str(split_num),epoch,optimizer,loss,file_name = f'epoch{str(epoch)}.pt')
                 wandb.log({"Best Dice": best_dice})
 

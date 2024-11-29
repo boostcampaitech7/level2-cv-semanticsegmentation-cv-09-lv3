@@ -13,10 +13,10 @@ device = "cuda"
 processor = AutoProcessor.from_pretrained(model_id)
 model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id).to(device)
 
-IMAGE_ROOT = "./data/train/DCM"
-LABEL_ROOT = "./data/train/outputs_json"
-TEST_IMAGE_ROOT = "./data/test/DCM"
-TEST_LABEL_ROOT = "./data/test/outputs_json"
+IMAGE_ROOT = "/data/ephemeral/home/data/fold_4/train/DCM"
+LABEL_ROOT = "/data/ephemeral/home/data/fold_4/train/label_json"
+TEST_IMAGE_ROOT = "../data/fold_4/test/DCM"
+TEST_LABEL_ROOT = "../data/fold_4/test/outputs_json"
 
 def crop_hands(image_root=IMAGE_ROOT, json_root = LABEL_ROOT):
 
@@ -76,5 +76,5 @@ def crop_hands(image_root=IMAGE_ROOT, json_root = LABEL_ROOT):
 
 
 if __name__ == "__main__":
-    crop_hands(TEST_IMAGE_ROOT,TEST_LABEL_ROOT)
+    crop_hands(IMAGE_ROOT,LABEL_ROOT)
 

@@ -3,6 +3,7 @@
 import os
 import albumentations as A
 import cv2
+import ttach as tta
 
 # Base directory (assuming this script is run from the 'code' directory)
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -27,7 +28,7 @@ CLASS2IND = {v: i for i, v in enumerate(CLASSES)}
 IND2CLASS = {v: k for k, v in CLASS2IND.items()}
 
 #models
-ENCODER_NAME = "efficientnet-b2" #xception41 -> 71
+ENCODER_NAME = "tu-xception71" #xception41 -> 71
 ENCODER_WEIGHT = "imagenet"
 IN_CHANNELS = 3
 
@@ -35,10 +36,11 @@ IN_CHANNELS = 3
 BATCH_SIZE = 4
 LR = 1e-4
 RANDOM_SEED = 21
-NUM_EPOCHS = 30
-VAL_EVERY = 2  # Typically validate every epoch
+NUM_EPOCHS = 80
+VAL_EVERY = 10  # Typically validate every epoch
 THRESHOLD = 0.5
 LOSS_WEIGHT = [0.3,0.4,0.3]
+USE_AMP = True
 
 #train
 TRAIN_TRANSFORM = A.Compose([
@@ -66,12 +68,15 @@ VALID_TRANSFORM = A.Compose([
     ])
 CROP_HAND = True
 RIGHT_HAND = False
+WEIGHTED_LOSS = False
 RESUME = None
 
 # Directories
 SAVED_DIR = os.path.join(BASE_DIR, 'code', 'checkpoints')
-OUTPUT_CSV = os.path.join(BASE_DIR, 'code', 'output', 'xception71_epoch50.csv')
-CHECKPOINT = os.path.join('2024-11-19_16-15-04','epoch31.pt')
+OUTPUT_CSV = os.path.join(BASE_DIR, 'code', 'output', 'xception71_epoch80_fold2.csv')
+CHECKPOINT = os.path.join('2024-11-27_00-57-34_fold_2','epoch70.pt')
+
+TTA_TRANSFORM = None
 
 # Ensure directories exist
 os.makedirs(SAVED_DIR, exist_ok=True)
