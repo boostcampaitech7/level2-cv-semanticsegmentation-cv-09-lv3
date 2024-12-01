@@ -1,40 +1,120 @@
-# Boostcamp AI Tech 7 SuperNova
+# Hand Bone Image Segmentation
 
-## Hand Bone Image Segmentation
-#### 2024.11.13 10:00 ~ 2024.11.28 19:00
+## **📘**Overview
 
-뼈는 우리 몸의 구조와 기능에 중요한 영향을 미치므로, 정확한 뼈 분할은 의료 진단 및 치료 계획 수립에 필수적입니다. 
+2024.11.13 ~ 2024.11.28
 
-Bone Segmentation은 인공지능 분야에서 중요한 응용 분야 중 하나로, 특히 딥러닝 기술을 활용한 뼈 Segmentation에 대한 연구가 활발히 진행되고 있습니다. 이는 다양한 목적으로 활용될 수 있습니다.
-
-- **질병 진단**: 뼈의 형태나 위치가 변형되거나 부러진 경우, 해당 부위의 문제를 정확히 파악하여 적절한 치료를 시행할 수 있습니다.
-- **수술 계획**: 의사들은 뼈 구조를 분석하여 필요한 수술의 종류와 사용할 재료를 결정할 수 있습니다.
-- **의료 장비 제작**: 인공 관절이나 치아 임플란트를 제작할 때, 뼈 구조를 분석하여 적절한 크기와 모양을 결정하는 데 필요한 정보를 제공합니다.
-- **의료 교육**: 의사들은 병태 및 부상에 대한 이해를 높이고, 수술 계획을 개발하는 데 필요한 기술을 연습할 수 있습니다.
+This project focuses on segmenting hand bones in medical images as part of a private competition organized by Naver Connect Foundation and Upstage.
 
 
-![image](https://github.com/user-attachments/assets/1f72f09c-21ca-4aec-96fc-db8a5d0a89ce)
+## **📘**Contributors
 
-### Input
-- Hand bone X-ray 객체가 담긴 이미지
-- Segmentation annotation이 담긴 JSON 파일
-- Train 800장, Test 284장
+|은의찬|임동훈|김예나|한승수|김동영|정아영
+|:----:|:----:|:----:|:----:|:----:|:----:|
+| [<img src="https://github.com/user-attachments/assets/de2fa83d-3076-4f18-bc65-45e34a456b72" alt="" style="width:100px;100px;">](https://github.com/0522chan) <br/> | [<img src="https://github.com/user-attachments/assets/6ba55701-35e6-421f-8ed7-03b054f55a76" alt="" style="width:100px;100px;">](https://github.com/naringles) <br/> | [<img src="https://github.com/user-attachments/assets/109315cf-03ea-46c9-af2d-4145cef1f50f" alt="" style="width:100px;100px;">](https://github.com/yehna2907) <br/> | [<img src="https://github.com/user-attachments/assets/b2e040a7-dca3-4a23-b44f-5de84b76c950" alt="" style="width:100px;100px;">](https://github.com/hanseungsoo13) <br/> | [<img src="https://github.com/user-attachments/assets/d973c9de-7e57-4796-8c48-924269f4d2c9" alt="" style="width:100px;100px;">](https://github.com/kimdyoc13) <br/> | [<img src="https://github.com/user-attachments/assets/1a023730-0169-427f-8642-977aa888535e" alt="" style="width:100px;100px;">](https://github.com/Jeong-AYeong) <br/> |
 
-### Output
-- 모델은 각 클래스(29개)에 대한 확률 맵을 생성하고, 이를 기반으로 각 픽셀을 해당 클래스에 할당
-- 최종적으로 예측된 결과는 Run-Length Encoding(RLE) 형식으로 변환되어 CSV 파일로 제출
 
-## Product Structure
+## **📘**Wrap up Report
 
-## Usage
+[Here's our link](https://broadleaf-jasper-0c4.notion.site/d7a2c94d5c604e8380479662a227c8b0)
 
-## 최종 선택 모델
+## **📘**Metrics
 
-## Result
+- Dice
 
-## Contributors
+![스크린샷 2024-12-01 215355](https://github.com/user-attachments/assets/0a4b33ba-0901-486c-963d-ddabada68fe2)
 
 
 
+## **📰**Tools
+
+- github
+- notion
+- slack
+- wandb
+
+## **📰**Folder Structure
+
+```
+
+├─code
+│  └─baseline_code.ipynb
+│
+
+```
+
+## **📰**Dataset Structure
+
+```
+
+├─data
+     ├─test
+     │    └─DCM
+     │         ├─ID040
+     │         │     image1661319116107.png
+     │         │     image1661319145363.png
+     │         └─ID041
+     │                image1661319356239.png
+     │                image1661319390106.png
+     │
+     ├─train
+     │    ├─DCM
+     │    │   ├─ID001
+     │    │   │     image1661130828152_R.png
+     │    │   │     image1661130891365_L.png
+     │    │   └─ID002
+     │    │          image1661144206667.png
+     │    │          image1661144246917.png
+     │    │        
+     │    └─outputs_json
+     │               ├─ID001
+     │               │     image1661130828152_R.json
+     │               │     image1661130891365_L.json
+     │               └─ID002
+                             image1661144206667.json
+                             image1661144246917.json
+```
+
+- images : 1088
+    - train : 800
+    - test : 288
+- 29 class : f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, Trapezium, Trapezoid, Capitate, Hamate, Scaphoid, Lunate, Triquetrum, Pisiform, Radius, Ulna
+- image size :  (2048, 2048)
+
+![스크린샷 2024-12-01 215433](https://github.com/user-attachments/assets/8a3a4c59-0ad8-447b-9315-a964b86de361)
+
+
+## **📰**Model (backbone)
+- FCN (torchvision)
+- DeeplabV3+ (xception71)
+- UNet++ (xception)
+- UNet++ (effinet-b5)
+- UNet++ (resnext101)
+- UNet++ (hrnet_64)
+- UNet++ (max-vit)
+- UNet++ (effinetv2-xl)
+- UNet++ (halonet50)
+- UNet++ (nfnet_l2)
+
+## **📰**Encoder 
+- ResNet
+- ResNeXt
+- ResNeSt
+- RegNet
+- GERNet
+- EfficientNet
+- MobileNet
+- VGG19
+
+## **📰Experiments**
+![스크린샷 2024-12-01 214215](https://github.com/user-attachments/assets/02200029-5ca1-441a-a637-6269bfc83905)
+
+
+| Exp | mAP |
+| --- | --- |
+| Yolov11(5), RT-DETR(5), CO-DINO(2) | 0.6760 |
+| Co-dino_r50(2), Co-dino_swin(5) | 0.6590 |
+| Co-dino_swin(5),Co-dino_r50(2),RT-DETR(5) | 0.6797 |
+| Co_dino_swin(5), RT-DETR(5), Yolov11(5) | 0.6834 |
 
 
