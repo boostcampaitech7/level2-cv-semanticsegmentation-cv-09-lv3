@@ -39,8 +39,28 @@ This project focuses on segmenting hand bones in medical images as part of a pri
 
 ├─code
 │  └─baseline_code.ipynb
-│
-
+├─mmsegmentation
+│  ├─custom_config
+|  |  ├─data_vars.py
+|  |  ├─dataset_setting.py
+|  |  ├─default_runtime.py
+|  |  └─segformer.py
+│  └─custom_modules
+|    ├─datasets
+|    |  ├─__init__.py
+|    |  └─custom_dataset.py
+|    ├─metrics
+|    |  ├─__init__.py
+|    |  └─custom_metric.py
+|    ├─models
+|    |  ├─__init__.py
+|    |  └─custom_model.py
+|    ├─transforms
+|    |  ├─__init__.py
+|    |  └─custom_transform.py
+├─ensemble
+│  ├─ensemble.py
+|  └─soft_voting_setting.yaml
 ```
 
 ## **📰**Dataset Structure
