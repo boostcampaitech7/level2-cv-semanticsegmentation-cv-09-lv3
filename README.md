@@ -104,7 +104,7 @@ This project focuses on segmenting hand bones in medical images as part of a pri
 - `SMP`: SMP 모듈을 활용한 Segmentation 모델들을 학습, 추론합니다.
 - `MMSegmentaiton`: mmsegmentation 모듈을 활용한 Segmentation 모델들을 학습, 추론합니다.
 - `yolo_seg`: YOLOv11을 활용한 Segmentation 모델을 학습, 추론합니다.
-- 자세한 코드 활용법은 각 모듈 폴더의 `read.me`를 통해 확인할 수 있습니다.
+- 자세한 코드 활용법은 각 모듈 폴더의 `README.md`를 통해 확인할 수 있습니다.
 
 ## **📰**Dataset Structure
 
