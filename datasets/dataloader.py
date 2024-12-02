@@ -25,7 +25,7 @@ from torchvision import models
 import matplotlib.pyplot as plt
 
 # import 
-from psuedo_label import *
+from SMP.utils.psuedo_label import *
 
 
 CLASSES = [
@@ -41,7 +41,7 @@ IND2CLASS = {v: k for k, v in CLASS2IND.items()}
 
 
 class XRayDataset(Dataset):
-    def __init__(self, IMAGE_ROOT, LABEL_ROOT, is_train=True, transforms=None, psuedo_flag=False):
+    def __init__(self, IMAGE_ROOT, LABEL_ROOT, is_train=True, transforms=None, psuedo_flag=False, crop_hand = False, n_splits=5, split_num=0):
         pngs = {
             os.path.relpath(os.path.join(root, fname), start=IMAGE_ROOT)
             for root, _dirs, files in os.walk(IMAGE_ROOT)
@@ -73,11 +73,11 @@ class XRayDataset(Dataset):
         
         # 전체 데이터의 20%를 validation data로 쓰기 위해 `n_splits`를
         # 5으로 설정하여 KFold를 수행합니다.
-        gkf = GroupKFold(n_splits=5)
+        gkf = GroupKFold(n_splits=n_splits)
         
         filenames = []
         labelnames = []
-        valid_set_num = 4
+        valid_set_num = split_num
         for i, (x, y) in enumerate(gkf.split(_filenames, ys, groups)):
             if is_train:
                 # 0번을 validation dataset으로 사용합니다.
@@ -105,6 +105,7 @@ class XRayDataset(Dataset):
         self.labelnames = labelnames
         self.is_train = is_train
         self.transforms = transforms
+        self.crop_hand = crop_hand
         
     def __len__(self):
         return len(self.filenames)
@@ -126,8 +127,10 @@ class XRayDataset(Dataset):
         # label 파일을 읽습니다.
         with open(label_path, "r") as f:
             annotations = json.load(f)
+        x_min,y_min,x_max,y_max = annotations["boxes"]
         annotations = annotations["annotations"]
         
+        num_classes = len(CLASSES)
         # 클래스 별로 처리합니다.
         for ann in annotations:
             c = ann["label"]
@@ -138,13 +141,18 @@ class XRayDataset(Dataset):
             class_label = np.zeros(image.shape[:2], dtype=np.uint8)
             cv2.fillPoly(class_label, [points], 1)
             label[..., class_ind] = class_label
+            if num_classes>29:
+                label[..., -1] += class_label
+        inputs = {"image": image, "mask": (label>0).astype(np.uint8)}
+
+        if self.crop_hand:
+            crop_transform = A.Crop(x_min,y_min,x_max,2048,always_apply=True)
+            inputs = crop_transform(**inputs)
         
         if self.transforms is not None:
-            inputs = {"image": image, "mask": label} if self.is_train else {"image": image}
             result = self.transforms(**inputs)
-            
             image = result["image"]
-            label = result["mask"] if self.is_train else label
+            label = result["mask"] #if self.is_train else inputs["mask"]
 
         # to tenser will be done later
         image = image.transpose(2, 0, 1)    # channel first 포맷으로 변경합니다.
@@ -153,24 +161,34 @@ class XRayDataset(Dataset):
         image = torch.from_numpy(image).float()
         label = torch.from_numpy(label).float()
             
-        return image, label
+        return image, label, image_name
 
 
 class XRayInferenceDataset(Dataset):
-    def __init__(self, IMAGE_ROOT, transforms=None):
+    def __init__(self, IMAGE_ROOT, LABEL_ROOT, transforms=None, crop_hand=False):
         pngs = {
             os.path.relpath(os.path.join(root, fname), start=IMAGE_ROOT)
             for root, _dirs, files in os.walk(IMAGE_ROOT)
             for fname in files
             if os.path.splitext(fname)[1].lower() == ".png"
         }
+
+        jsons = sorted([
+            os.path.relpath(os.path.join(root, fname), start=LABEL_ROOT)
+            for root, _dirs, files in os.walk(LABEL_ROOT)
+            for fname in files
+            if os.path.splitext(fname)[1].lower() == ".json"
+        ])
             
         _filenames = pngs
         _filenames = np.array(sorted(_filenames))
         
-        self.IMAGE_ROOT = IMAGE_ROOT
-        self.filenames = _filenames
         self.transforms = transforms
+        self.image_root = IMAGE_ROOT
+        self.label_root = LABEL_ROOT
+        self.crop_hand = crop_hand
+        self.filenames = sorted(pngs)
+        self.labelnames = sorted(jsons)
     
     def __len__(self):
         return len(self.filenames)
@@ -181,15 +199,30 @@ class XRayInferenceDataset(Dataset):
         
         image = cv2.imread(image_path)
         image = image / 255.
+
+        label_name = self.labelnames[item]
+        label_path = os.path.join(self.label_root, label_name)
+
+        if self.crop_hand:
+            with open(label_path, "r") as f:
+                annotations = json.load(f)
+            crop_box = annotations["boxes"]
+            x_min,y_min,x_max,y_max = crop_box
+            image = image[y_min:2048,x_min:x_max]
+            inputs = {"image": image}
+            crop_box = torch.tensor(crop_box)
         
         if self.transforms is not None:
             inputs = {"image": image}
             result = self.transforms(**inputs)
             image = result["image"]
-
+            
         # to tenser will be done later
         image = image.transpose(2, 0, 1)  
         
         image = torch.from_numpy(image).float()
-            
-        return image, image_name
+
+        if self.crop_hand:
+            return image, image_name, crop_box
+        else:
+            return image, image_name

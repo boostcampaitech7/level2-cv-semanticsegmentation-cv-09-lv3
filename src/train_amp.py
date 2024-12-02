@@ -23,17 +23,17 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from torchvision import models
 import segmentation_models_pytorch as smp
-from model import create_model
+from final_.src.model import create_model
 
 # visualization
 import matplotlib.pyplot as plt
 
-from dataloader import XRayDataset
-from psuedo_label import *
-from loss import create_criterion
-from optimizer import create_optim
-from scheduler import create_sched
-from augmentation import create_augmentation
+from final_.datasets.dataloader import XRayDataset
+from final_.utils.psuedo_label import *
+from final_.utils.loss import create_criterion
+from final_.utils.optimizer import create_optim
+from final_.utils.scheduler import create_sched
+from final_.datasets.augmentation import create_augmentation
 
 
 CLASSES = [
@@ -101,17 +101,16 @@ def validation(epoch, model, data_loader, criterion, thr=0.5):
             cnt += 1
             
             outputs = torch.sigmoid(outputs)
-            # outputs = (outputs > thr).detach().cpu()
-            # masks = masks.detach().cpu()
-            outputs = (outputs > thr)
+            outputs = (outputs > thr).detach().cpu()
+            masks = masks.detach().cpu()
+            
             dice = dice_coef(outputs, masks)
             dices.append(dice)
                 
             # B C H W            
             if step == 0:
                 table_data = []
-                masks = masks[0].cpu().numpy()  # GPU -> CPU로 이동
-                preds = outputs[0].cpu().numpy()  # GPU -> CPU로 이동
+                masks, preds = masks[0].numpy(), outputs[0].numpy()
                 for cls_idx in range(n_class):
                     empty_mask = np.zeros((2048, 2048))
                     mask = masks[cls_idx].astype(np.uint8) * 64
@@ -144,41 +143,24 @@ def train(model, data_loader, val_loader, criterion, optimizer, scheduler, is_pl
     set_seed()
     n_class = len(CLASSES)
     best_dice = 0.
-# ####
-#     scaler = torch.amp.GradScaler(enabled=True)
-    
-#     for epoch in range(NUM_EPOCHS):
-#         model.train()
 
-#         for step, (images, masks) in enumerate(data_loader):            
-#             images, masks = images.cuda(), masks.cuda()
-#             model = model.cuda()
-#             optimizer.zero_grad()
-            
-#             with torch.amp.autocast(device_type='cuda', enabled=True):
-#                 outputs = model(images)
-#                 # loss를 계산합니다.
-#                 loss = criterion(outputs, masks)
-#             scaler.scale(loss).backward()
-#             scaler.step(optimizer)
-#             scaler.update()
-# ####            
+    scaler = torch.cuda.amp.GradScaler(enabled=True)
     for epoch in range(NUM_EPOCHS):
         model.train()
+
         for step, (images, masks) in enumerate(data_loader):            
-            # gpu 연산을 위해 device 할당
+            # gpu 연산을 위해 device 할당합니다.
             images, masks = images.cuda(), masks.cuda()
             model = model.cuda()
-            # Optimizer 초기화
             optimizer.zero_grad()
-            # 모델 예측 수행
-            outputs = model(images)
-            # 손실 계산
-            loss = criterion(outputs, masks)
-            # 역전파 수행
-            loss.backward()
-            # 옵티마이저 업데이트
-            optimizer.step()            
+            
+            with torch.cuda.amp.autocast(enabled=True):
+                outputs = model(images)
+                # loss를 계산합니다.
+                loss = criterion(outputs, masks)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
             
             # step 주기에 따라 loss를 출력합니다.
             if (step + 1) % 10 == 0:
@@ -314,9 +296,7 @@ if __name__ == '__main__':
 
     # 시드를 설정합니다.
     set_seed()
-
-    ######## wandb 입맛에 맞게 수정.
     CAMPER_ID = config['CAMPER_ID']
-    wandb.init(project='XRay_Segmentation',entity='ayeong-chonnam-national-university', name=f"{CAMPER_ID}-{EXP_NAME}", config=config)
+    wandb.init(project='XRay_Segmentation', entity='ayeong-chonnam-national-university', name=f"{CAMPER_ID}-{EXP_NAME}", config=config)
     
     train(model, train_loader, valid_loader, criterion, optimizer, scheduler, is_plateau)

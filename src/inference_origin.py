@@ -28,7 +28,7 @@ import segmentation_models_pytorch as smp
 # visualization
 import matplotlib.pyplot as plt
 
-from dataloader import XRayInferenceDataset
+from SMP.datasets.dataloader import XRayInferenceDataset
 
 CLASSES = [
     'finger-1', 'finger-2', 'finger-3', 'finger-4', 'finger-5',

@@ -23,17 +23,17 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from torchvision import models
 import segmentation_models_pytorch as smp
-from model import create_model
+from SMP.src.model import create_model
 
 # visualization
 import matplotlib.pyplot as plt
 
-from dataloader import XRayDataset
-from psuedo_label import *
-from loss import create_criterion
-from optimizer import create_optim
-from scheduler import create_sched
-from augmentation import create_augmentation
+from SMP.datasets.dataloader import XRayDataset
+from SMP.utils.psuedo_label import *
+from SMP.utils.loss import create_criterion
+from SMP.utils.optimizer import create_optim
+from SMP.utils.scheduler import create_sched
+from SMP.datasets.augmentation import create_augmentation
 
 
 CLASSES = [
