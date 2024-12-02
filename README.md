@@ -130,11 +130,11 @@ This project focuses on segmenting hand bones in medical images as part of a pri
 ![스크린샷 2024-12-01 214215](https://github.com/user-attachments/assets/02200029-5ca1-441a-a637-6269bfc83905)
 
 
-| Exp | mAP |
+| Exp | mDICE |
 | --- | --- |
-| Yolov11(5), RT-DETR(5), CO-DINO(2) | 0.6760 |
-| Co-dino_r50(2), Co-dino_swin(5) | 0.6590 |
-| Co-dino_swin(5),Co-dino_r50(2),RT-DETR(5) | 0.6797 |
-| Co_dino_swin(5), RT-DETR(5), Yolov11(5) | 0.6834 |
+| Unet++_hrnet_5fold | 0.9741 |
+| Unet++hrnet, Unet++vgg, segformer, deeplab | 0.9751 |
+| Unet++hrnet, Unet++vgg, segformer, deeplab(threshold:0.4) | 0.9753 |
+
 
 
