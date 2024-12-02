@@ -15,6 +15,7 @@ This project focuses on segmenting hand bones in medical images as part of a pri
 
 
 ## **📘**Wrap up Report
+프로젝트에 대한 상세한 설명, 개인의 Contribution은 아래의 랩업리포트를 통해 자세히 볼 수 있습니다.
 
 [Here's our link](https://broadleaf-jasper-0c4.notion.site/d7a2c94d5c604e8380479662a227c8b0)
 
