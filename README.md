@@ -37,7 +37,6 @@ This project focuses on segmenting hand bones in medical images as part of a pri
 ## **📰**Folder Structure
 
 ```
-
 ├── README.md
 ├── SMP
 │   ├── datasets
@@ -109,7 +108,6 @@ This project focuses on segmenting hand bones in medical images as part of a pri
 ## **📰**Dataset Structure
 
 ```
-
 ├─data
      ├─test
      │    └─DCM
