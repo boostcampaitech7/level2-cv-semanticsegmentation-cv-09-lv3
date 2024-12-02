@@ -37,30 +37,68 @@ This project focuses on segmenting hand bones in medical images as part of a pri
 
 ```
 
-├─code
-│  └─baseline_code.ipynb
-├─mmsegmentation
-│  ├─custom_config
-|  |  ├─data_vars.py
-|  |  ├─dataset_setting.py
-|  |  ├─default_runtime.py
-|  |  └─segformer.py
-│  └─custom_modules
-|    ├─datasets
-|    |  ├─__init__.py
-|    |  └─custom_dataset.py
-|    ├─metrics
-|    |  ├─__init__.py
-|    |  └─custom_metric.py
-|    ├─models
-|    |  ├─__init__.py
-|    |  └─custom_model.py
-|    ├─transforms
-|    |  ├─__init__.py
-|    |  └─custom_transform.py
-├─ensemble
-│  ├─ensemble.py
-|  └─soft_voting_setting.yaml
+├── README.md
+├── SMP
+│   ├── datasets
+│   │   ├── augmentation.py
+│   │   ├── convert_to_coco.py
+│   │   └── dataloader.py
+│   ├── src
+│   │   ├── inference.py
+│   │   ├── inference_origin.py
+│   │   ├── inference_tta.py
+│   │   ├── model.py
+│   │   ├── train.py
+│   │   ├── train_amp.py
+│   │   └── train_resume.py
+│   └── utils
+│       ├── detection
+│       │   ├── crop_hands.py
+│       │   └── make_test_json.py
+│       ├── eda
+│       │   ├── ARIAL.TTF
+│       │   ├── augmentation_vis.ipynb
+│       │   ├── coco_data_vis.ipynb
+│       │   ├── random_vis.ipynb
+│       │   ├── res_vis.ipynb
+│       │   └── visualize.py
+│       ├── loss.py
+│       ├── optimizer.py
+│       ├── psuedo_label.py
+│       └── scheduler.py
+├── configs
+│   ├── config.yaml
+│   └── config_resume.yaml
+├── ensemble
+│   ├── ensemble.py
+│   ├── hardvoting.ipynb
+│   └── soft_voting_setting.yaml
+├── mmsegmentation
+│   ├── custom_config
+│   │   ├── data_vars.py
+│   │   ├── dataset_setting.py
+│   │   ├── default_runtime.py
+│   │   └── segformer.py
+│   └── custom_modules
+│       ├── __init__.py
+│       ├── datasets
+│       │   ├── __init__.py
+│       │   └── custom_dataset.py
+│       ├── metrics
+│       │   ├── __init__.py
+│       │   └── custom_metric.py
+│       ├── models
+│       │   ├── __init__.py
+│       │   └── custom_model.py
+│       └── transforms
+│           ├── __init__.py
+│           └── custom_transform.py
+├── requirements.txt
+└── yolo_seg
+    ├── config
+    │   └── yolo_config.yaml
+    ├── yolo_seg.py
+    └── yolo_seg_augment.py
 ```
 
 ## **📰**Dataset Structure
@@ -104,28 +142,16 @@ This project focuses on segmenting hand bones in medical images as part of a pri
 ![스크린샷 2024-12-01 215433](https://github.com/user-attachments/assets/8a3a4c59-0ad8-447b-9315-a964b86de361)
 
 
-## **📰**Model (backbone)
-- FCN (torchvision)
-- DeeplabV3+ (xception71)
-- UNet++ (xception)
-- UNet++ (effinet-b5)
-- UNet++ (resnext101)
-- UNet++ (hrnet_64)
-- UNet++ (max-vit)
-- UNet++ (effinetv2-xl)
-- UNet++ (halonet50)
-- UNet++ (nfnet_l2)
+## **📰**Model
+### SMP
+- `SMP/configs/config.YAML`을 통해 활용할 모델, backbone을 변경할 수 있습니다.
+- `train.py`를 통해 SMP 모델 train이 가능합니다.
+- `inference.py`를 통해 SMP 모델 inferernce가 가능합니다.
+- SMP의 설치, 활용가능한 모델은 [SMP 공식문서](https://smp.readthedocs.io/en/latest/index.html)를 참고해주세요.
 
-## **📰**Encoder 
-- ResNet
-- ResNeXt
-- ResNeSt
-- RegNet
-- GERNet
-- EfficientNet
-- MobileNet
-- VGG19
+### MMsegmentation
 
+```
 ## **📰Experiments**
 ![스크린샷 2024-12-01 214215](https://github.com/user-attachments/assets/02200029-5ca1-441a-a637-6269bfc83905)
 
