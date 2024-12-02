@@ -155,7 +155,7 @@ This project focuses on segmenting hand bones in medical images as part of a pri
 - SMP의 설치, 활용가능한 모델은 [SMP 공식문서](https://smp.readthedocs.io/en/latest/index.html)를 참고해주세요.
 
 ### MMsegmentation
-
+- MMSegmentation `README.md` 참고
 
 ## **📰Experiments**
 ![스크린샷 2024-12-01 214215](https://github.com/user-attachments/assets/02200029-5ca1-441a-a637-6269bfc83905)
