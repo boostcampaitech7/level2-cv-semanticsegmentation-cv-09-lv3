@@ -15,7 +15,7 @@ This project focuses on segmenting hand bones in medical images as part of a pri
 
 
 ## **📘**Wrap up Report
-프로젝트에 대한 상세한 설명, 개인의 Contribution은 아래의 랩업리포트를 통해 자세히 볼 수 있습니다.
+You can find detailed explanations about the project and individual contributions in the wrap-up report below.
 
 [Here's our link](https://broadleaf-jasper-0c4.notion.site/d7a2c94d5c604e8380479662a227c8b0)
 
@@ -101,10 +101,10 @@ This project focuses on segmenting hand bones in medical images as part of a pri
     ├── yolo_seg.py
     └── yolo_seg_augment.py
 ```
-- `SMP`: SMP 모듈을 활용한 Segmentation 모델들을 학습, 추론합니다.
-- `MMSegmentaiton`: mmsegmentation 모듈을 활용한 Segmentation 모델들을 학습, 추론합니다.
-- `yolo_seg`: YOLOv11을 활용한 Segmentation 모델을 학습, 추론합니다.
-- 자세한 코드 활용법은 각 모듈 폴더의 `README.md`를 통해 확인할 수 있습니다.
+- `SMP`: Trains and inferences segmentation models using the SMP module.
+- `MMSegmentaiton`: Trains and inferences segmentation models using the MMSegmentation module.
+- `yolo_seg`: Trains and inferences segmentation models using YOLOv11.
+- Detailed usage of the code can be found in the `README.md`file within each module folder.
 
 ## **📰**Dataset Structure
 
@@ -149,13 +149,13 @@ This project focuses on segmenting hand bones in medical images as part of a pri
 
 ## **📰**Model
 ### SMP
-- `SMP/configs/config.YAML`을 통해 활용할 모델, backbone을 변경할 수 있습니다.
-- `train.py`를 통해 SMP 모델 train이 가능합니다.
-- `inference.py`를 통해 SMP 모델 inferernce가 가능합니다.
-- SMP의 설치, 활용가능한 모델은 [SMP 공식문서](https://smp.readthedocs.io/en/latest/index.html)를 참고해주세요.
+- You can modify the model and backbone to use via `SMP/configs/config.YAML`
+- SMP model training is available through `train.py`
+- SMP model inference is available through `inference.py`
+- For installation and supported models of SMP, refer to the [SMP 공식문서](https://smp.readthedocs.io/en/latest/index.html)
 
 ### MMsegmentation
-- MMSegmentation `README.md` 참고
+- Please refer to the MMSegmentation `README.md`
 
 ## **📰Experiments**
 ![스크린샷 2024-12-01 214215](https://github.com/user-attachments/assets/02200029-5ca1-441a-a637-6269bfc83905)
