@@ -1,0 +1,44 @@
+DATA_ROOT: "/home/work/.hat/dhlim/seg/level2-cv-ref/data"
+SAVED_DIR: "/home/work/.hat/dhlim/seg/level2-cv-ref/model"
+EXP_NAME: "UnetPlusPlus-hrnet64-custom_aug-bce_dice-lion-plateau-1024-100ep-fold4"
+CAMPER_ID: "T7234"
+BATCH_SIZE: 3
+LR: 0.0001
+RANDOM_SEED: 21
+NUM_EPOCHS: 70
+VAL_EVERY: 10
+RESIZE: 1024
+
+#RESUME: True #train_resume.py로 실행하지 않을 경우 주석처리.
+
+PSEUDO_LABEL: False
+OUTPUT_CSV_PATH: "/home/work/.hat/dhlim/seg/level2-cv-ref/result/UnetPlusPlus-hrnet64-custom_aug-bce_dice-lion-plateau-1024-100ep-fold4.csv"
+
+augmentation:
+  name: "custom"
+  params: null
+
+loss:
+  name: "bce_dice"
+  params: null
+
+# adam, adamw, rmsprop, lion
+optimizer:
+  name: "lion"
+  params: 
+    weight_decay: 0.0001  # Lion optimizer의 권장 weight decay
+    betas: [0.9, 0.99]  # Lion의 기본 beta 값들
+
+# step, cosine, plateau
+scheduler:
+  name: "plateau"
+  params: 
+    # eta_min: 0.000001       # minimum learning rate
+
+# torchvision or smp
+TYPE: smp
+# torchvision: fcn, deeplab
+# smp: Unet, UnetPlusPlus, MAnet, Linknet, FPN, PSPNet, DeepLabV3, DeepLabV3Plus, PAN
+MODEL: UnetPlusPlus
+# https://github.com/qubvel/segmentation_models.pytorch?tab=readme-ov-file#encoders
+ENCODER: tu-hrnet_w64
