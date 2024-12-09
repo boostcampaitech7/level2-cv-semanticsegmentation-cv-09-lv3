@@ -152,7 +152,7 @@ You can find detailed explanations about the project and individual contribution
 - You can modify the model and backbone to use via `SMP/configs/config.YAML`
 - SMP model training is available through `train.py`
 - SMP model inference is available through `inference.py`
-- For installation and supported models of SMP, refer to the [SMP 공식문서](https://smp.readthedocs.io/en/latest/index.html)
+- For installation and supported models of SMP, refer to the [SMP official document](https://smp.readthedocs.io/en/latest/index.html)
 
 ### MMsegmentation
 - Please refer to the MMSegmentation `README.md`
